@@ -5,8 +5,16 @@ import 'icon_color_selection.dart';
 class Sidebar extends StatefulWidget {
   final Function(int) onTabSelected;
   final Function onTabAdded;
+  final Function(List<Map<String, dynamic>>) onNoteIconsChanged;
+  final Function onDrawModeToggled;
 
-  const Sidebar({required this.onTabSelected, required this.onTabAdded, Key? key}) : super(key: key);
+  const Sidebar({
+    required this.onTabSelected,
+    required this.onTabAdded,
+    required this.onNoteIconsChanged,
+    required this.onDrawModeToggled,
+    Key? key,
+  }) : super(key: key);
 
   @override
   _SidebarState createState() => _SidebarState();
@@ -21,23 +29,40 @@ class _SidebarState extends State<Sidebar> {
       width: 60,
       color: Color(0xFF303446),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: noteIcons.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onLongPress: () => _showDeleteConfirmationDialog(index),
-                  child: IconButton(
-                    icon: FaIcon(noteIcons[index]['icon'], color: noteIcons[index]['color']),
-                    onPressed: () {
-                      widget.onTabSelected(index);
-                    },
-                  ),
+            child: ReorderableListView(
+              onReorder: _onReorder,
+              buildDefaultDragHandles: false,
+              proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                return Material(
+                  color: Colors.transparent,
+                  child: child,
                 );
               },
+              children: [
+                for (int index = 0; index < noteIcons.length; index++)
+                  Container(
+                    key: ValueKey(noteIcons[index]),
+                    child: ReorderableDragStartListener(
+                      index: index,
+                      child: IconButton(
+                        icon: FaIcon(noteIcons[index]['icon'], color: noteIcons[index]['color']),
+                        onPressed: () {
+                          widget.onTabSelected(index);
+                        },
+                      ),
+                    ),
+                  ),
+              ],
             ),
+          ),
+          IconButton(
+            icon: FaIcon(FontAwesomeIcons.pen, color: Color(0xFFD9E0EE)),
+            onPressed: () {
+              widget.onDrawModeToggled();
+            },
           ),
           IconButton(
             icon: FaIcon(FontAwesomeIcons.plus, color: Color(0xFFD9E0EE)),
@@ -46,6 +71,17 @@ class _SidebarState extends State<Sidebar> {
         ],
       ),
     );
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final item = noteIcons.removeAt(oldIndex);
+      noteIcons.insert(newIndex, item);
+      widget.onNoteIconsChanged(noteIcons);
+    });
   }
 
   void _showIconSelectionDialog() {
@@ -59,36 +95,6 @@ class _SidebarState extends State<Sidebar> {
               widget.onTabAdded();
             });
           },
-        );
-      },
-    );
-  }
-
-  void _showDeleteConfirmationDialog(int index) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Delete Jot', style: TextStyle(color: Color(0xFFD9E0EE))),
-          backgroundColor: Color(0xFF232634),
-          content: Text('Are you sure you want to delete this jot?', style: TextStyle(color: Color(0xFFD9E0EE))),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel', style: TextStyle(color: Color(0xFFD9E0EE))),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  noteIcons.removeAt(index);
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Delete', style: TextStyle(color: Color(0xFFD9E0EE))),
-            ),
-          ],
         );
       },
     );
