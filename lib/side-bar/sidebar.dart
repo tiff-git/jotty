@@ -65,6 +65,10 @@ class _SidebarState extends State<Sidebar> {
             },
           ),
           IconButton(
+            icon: Icon(Icons.delete, color: Color(0xFFD9E0EE)),
+            onPressed: _onDeleteTab,
+          ),
+          IconButton(
             icon: FaIcon(FontAwesomeIcons.plus, color: Color(0xFFD9E0EE)),
             onPressed: _showIconSelectionDialog,
           ),
@@ -95,6 +99,57 @@ class _SidebarState extends State<Sidebar> {
               widget.onTabAdded();
             });
           },
+        );
+      },
+    );
+  }
+
+  void _onDeleteTab() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFF303446),
+          title: Text(
+            'Delete Note',
+            style: TextStyle(color: Color(0xFFD9E0EE)),
+          ),
+          content: Text(
+            'Are you sure you want to delete this note?',
+            style: TextStyle(color: Color(0xFFD9E0EE)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Color(0xFFB5E8E0)),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  if (noteIcons.isNotEmpty) {
+                    int currentIndex = noteIcons.length - 1;
+                    noteIcons.removeAt(currentIndex);
+                    widget.onNoteIconsChanged(noteIcons);
+                    if (noteIcons.isEmpty) {
+                      widget.onTabSelected(0);
+                    } else {
+                      widget.onTabSelected(currentIndex > 0 ? currentIndex - 1 : 0);
+                    }
+                  }
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Delete',
+                style: TextStyle(color: Color(0xFFB5E8E0)),
+              ),
+            ),
+          ],
         );
       },
     );
