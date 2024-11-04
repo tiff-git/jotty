@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'note_widget.dart';
+import 'main-screen/note_widget.dart';
 
 void main() {
   runApp(const MainApp());

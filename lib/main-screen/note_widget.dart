@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'side-bar/sidebar.dart';
+import '../side-bar/sidebar.dart';
 import 'drawing_painter.dart';
 
 class NoteWidget extends StatefulWidget {
