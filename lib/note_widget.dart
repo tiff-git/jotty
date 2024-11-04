@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'side-bar/sidebar.dart';
 import 'drawing_painter.dart';
 
@@ -53,28 +52,28 @@ class _NoteWidgetState extends State<NoteWidget> {
     });
   }
 
-void _onNoteIconsChanged(List<Map<String, dynamic>> updatedNoteIcons) {
-  setState(() {
-    // Update the notes list based on the new order of note icons
-    List<String> newNotes = List<String>.filled(updatedNoteIcons.length, '', growable: true);
-    List<List<Offset?>> newDrawings = List<List<Offset?>>.filled(updatedNoteIcons.length, [], growable: true);
-    for (int i = 0; i < updatedNoteIcons.length; i++) {
-      int? oldIndex = updatedNoteIcons[i]['index'];
-      if (oldIndex != null && oldIndex >= 0 && oldIndex < notes.length) {
-        newNotes[i] = notes[oldIndex];
-        newDrawings[i] = drawings[oldIndex];
+  void _onNoteIconsChanged(List<Map<String, dynamic>> updatedNoteIcons) {
+    setState(() {
+      // Update the notes list based on the new order of note icons
+      List<String> newNotes = List<String>.filled(updatedNoteIcons.length, '', growable: true);
+      List<List<Offset?>> newDrawings = List<List<Offset?>>.filled(updatedNoteIcons.length, [], growable: true);
+      for (int i = 0; i < updatedNoteIcons.length; i++) {
+        int? oldIndex = updatedNoteIcons[i]['index'];
+        if (oldIndex != null && oldIndex >= 0 && oldIndex < notes.length) {
+          newNotes[i] = notes[oldIndex];
+          newDrawings[i] = drawings[oldIndex];
+        }
       }
-    }
-    notes = newNotes;
-    drawings = newDrawings;
+      notes = newNotes;
+      drawings = newDrawings;
 
-    // Ensure selectedIndex is within the valid range
-    if (selectedIndex >= notes.length) {
-      selectedIndex = notes.length - 1;
-    }
-    _updateControllerText();
-  });
-}
+      // Ensure selectedIndex is within the valid range
+      if (selectedIndex >= notes.length) {
+        selectedIndex = notes.length - 1;
+      }
+      _updateControllerText();
+    });
+  }
 
   void _toggleDrawMode() {
     setState(() {
@@ -99,71 +98,60 @@ void _onNoteIconsChanged(List<Map<String, dynamic>> updatedNoteIcons) {
             painter: ThinWhiteLinePainter(),
           ),
           Expanded(
-            child: WindowBorder(
-              color: Colors.transparent,
-              width: 0,
-              child: Column(
-                children: [
-                  WindowTitleBarBox(
-                    child: Row(
+            child: Column(
+              children: [
+                // Custom top bar can be added here if needed
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Stack(
                       children: [
-                        Expanded(child: MoveWindow()),
-                        const WindowButtons(),
+                        TextField(
+                          controller: _controller,
+                          onChanged: (value) {
+                            setState(() {
+                              notes[selectedIndex] = value;
+                            });
+                          },
+                          maxLines: null,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your notes here...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(color: Color(0xFFD9E0EE)),
+                          ),
+                          style: TextStyle(color: Color(0xFFD9E0EE)),
+                        ),
+                        if (isDrawMode)
+                          ClipRect(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return GestureDetector(
+                                  onPanUpdate: (details) {
+                                    setState(() {
+                                      RenderBox renderBox = context.findRenderObject() as RenderBox;
+                                      Offset localPosition = renderBox.globalToLocal(details.globalPosition);
+                                      // Ensure the drawing does not go past the white line
+                                      if (localPosition.dx > 1 && localPosition.dx < constraints.maxWidth) {
+                                        drawings[selectedIndex].add(localPosition);
+                                      }
+                                    });
+                                  },
+                                  onPanEnd: (details) {
+                                    drawings[selectedIndex].add(null);
+                                  },
+                                  child: CustomPaint(
+                                    painter: DrawingPainter(drawings[selectedIndex]),
+                                    child: Container(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Stack(
-                        children: [
-                          TextField(
-                            controller: _controller,
-                            onChanged: (value) {
-                              setState(() {
-                                notes[selectedIndex] = value;
-                              });
-                            },
-                            maxLines: null,
-                            decoration: InputDecoration(
-                              hintText: 'Enter your notes here...',
-                              border: InputBorder.none,
-                              hintStyle: TextStyle(color: Color(0xFFD9E0EE)),
-                            ),
-                            style: TextStyle(color: Color(0xFFD9E0EE)),
-                          ),
-                          if (isDrawMode)
-                            ClipRect(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return GestureDetector(
-                                    onPanUpdate: (details) {
-                                      setState(() {
-                                        RenderBox renderBox = context.findRenderObject() as RenderBox;
-                                        Offset localPosition = renderBox.globalToLocal(details.globalPosition);
-                                        // Ensure the drawing does not go past the white line
-                                        if (localPosition.dx > 1 && localPosition.dx < constraints.maxWidth) {
-                                          drawings[selectedIndex].add(localPosition);
-                                        }
-                                      });
-                                    },
-                                    onPanEnd: (details) {
-                                      drawings[selectedIndex].add(null);
-                                    },
-                                    child: CustomPaint(
-                                      painter: DrawingPainter(drawings[selectedIndex]),
-                                      child: Container(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -184,18 +172,4 @@ class ThinWhiteLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
-class WindowButtons extends StatelessWidget {
-  const WindowButtons({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        MinimizeWindowButton(),
-        CloseWindowButton(),
-      ],
-    );
-  }
 }
