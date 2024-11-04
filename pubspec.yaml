@@ -9,9 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_quill: ^10.8.5
+  confetti: ^0.8.0
   bitsdojo_window: ^0.1.0
   font_awesome_flutter: ^10.1.0
-  google_fonts: ^5.0.0
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:

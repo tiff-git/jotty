@@ -23,71 +23,6 @@ class Sidebar extends StatefulWidget {
 class _SidebarState extends State<Sidebar> {
   List<Map<String, dynamic>> noteIcons = [];
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      color: Color(0xFF303446),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: ReorderableListView(
-              onReorder: _onReorder,
-              buildDefaultDragHandles: false,
-              proxyDecorator: (Widget child, int index, Animation<double> animation) {
-                return Material(
-                  color: Colors.transparent,
-                  child: child,
-                );
-              },
-              children: [
-                for (int index = 0; index < noteIcons.length; index++)
-                  Container(
-                    key: ValueKey(noteIcons[index]),
-                    child: ReorderableDragStartListener(
-                      index: index,
-                      child: IconButton(
-                        icon: FaIcon(noteIcons[index]['icon'], color: noteIcons[index]['color']),
-                        onPressed: () {
-                          widget.onTabSelected(index);
-                        },
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: FaIcon(FontAwesomeIcons.pen, color: Color(0xFFD9E0EE)),
-            onPressed: () {
-              widget.onDrawModeToggled();
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.delete, color: Color(0xFFD9E0EE)),
-            onPressed: _onDeleteTab,
-          ),
-          IconButton(
-            icon: FaIcon(FontAwesomeIcons.plus, color: Color(0xFFD9E0EE)),
-            onPressed: _showIconSelectionDialog,
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final item = noteIcons.removeAt(oldIndex);
-      noteIcons.insert(newIndex, item);
-      widget.onNoteIconsChanged(noteIcons);
-    });
-  }
-
   void _showIconSelectionDialog() {
     showDialog(
       context: context,
@@ -135,11 +70,7 @@ class _SidebarState extends State<Sidebar> {
                     int currentIndex = noteIcons.length - 1;
                     noteIcons.removeAt(currentIndex);
                     widget.onNoteIconsChanged(noteIcons);
-                    if (noteIcons.isEmpty) {
-                      widget.onTabSelected(0);
-                    } else {
-                      widget.onTabSelected(currentIndex > 0 ? currentIndex - 1 : 0);
-                    }
+                    widget.onTabSelected(currentIndex > 0 ? currentIndex - 1 : 0);
                   }
                 });
                 Navigator.of(context).pop();
@@ -153,5 +84,83 @@ class _SidebarState extends State<Sidebar> {
         );
       },
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: 60,
+          color: Color(0xFF303446),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: ReorderableListView(
+                  onReorder: _onReorder,
+                  buildDefaultDragHandles: false,
+                  proxyDecorator: (Widget child, int index, Animation<double> animation) {
+                    return Material(
+                      color: Colors.transparent,
+                      child: child,
+                    );
+                  },
+                  children: [
+                    for (int index = 0; index < noteIcons.length; index++)
+                      Container(
+                        key: ValueKey(noteIcons[index]),
+                        child: ReorderableDragStartListener(
+                          index: index,
+                          child: IconButton(
+                            icon: FaIcon(noteIcons[index]['icon'], color: noteIcons[index]['color']),
+                            onPressed: () {
+                              widget.onTabSelected(index);
+                            },
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: FaIcon(FontAwesomeIcons.pen, color: Color(0xFFD9E0EE)),
+                onPressed: () {
+                  widget.onDrawModeToggled();
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.delete, color: Color(0xFFD9E0EE)),
+                onPressed: _onDeleteTab,
+              ),
+              IconButton(
+                icon: FaIcon(FontAwesomeIcons.plus, color: Color(0xFFD9E0EE)),
+                onPressed: _showIconSelectionDialog,
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          right: 0,
+          top: 0,
+          bottom: 0,
+          child: Container(
+            width: 1,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final item = noteIcons.removeAt(oldIndex);
+      noteIcons.insert(newIndex, item);
+      widget.onNoteIconsChanged(noteIcons);
+    });
   }
 }
