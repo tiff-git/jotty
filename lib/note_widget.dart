@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import '../side-bar/sidebar.dart';
+import 'side-bar/sidebar.dart';
 import 'drawing_painter.dart';
 
 class NoteWidget extends StatefulWidget {
@@ -53,24 +53,28 @@ class _NoteWidgetState extends State<NoteWidget> {
     });
   }
 
-  void _onNoteIconsChanged(List<Map<String, dynamic>> updatedNoteIcons) {
-    setState(() {
-      // Update the notes list based on the new order of note icons
-      List<String> newNotes = List<String>.filled(updatedNoteIcons.length, '', growable: true);
-      List<List<Offset?>> newDrawings = List<List<Offset?>>.filled(updatedNoteIcons.length, [], growable: true);
-      for (int i = 0; i < updatedNoteIcons.length; i++) {
-        int oldIndex = noteIcons.indexOf(updatedNoteIcons[i]);
-        if (oldIndex != -1) {
-          newNotes[i] = notes[oldIndex];
-          newDrawings[i] = drawings[oldIndex];
-        }
+void _onNoteIconsChanged(List<Map<String, dynamic>> updatedNoteIcons) {
+  setState(() {
+    // Update the notes list based on the new order of note icons
+    List<String> newNotes = List<String>.filled(updatedNoteIcons.length, '', growable: true);
+    List<List<Offset?>> newDrawings = List<List<Offset?>>.filled(updatedNoteIcons.length, [], growable: true);
+    for (int i = 0; i < updatedNoteIcons.length; i++) {
+      int? oldIndex = updatedNoteIcons[i]['index'];
+      if (oldIndex != null && oldIndex >= 0 && oldIndex < notes.length) {
+        newNotes[i] = notes[oldIndex];
+        newDrawings[i] = drawings[oldIndex];
       }
-      notes = newNotes;
-      drawings = newDrawings;
-      noteIcons = updatedNoteIcons;
-      _updateControllerText();
-    });
-  }
+    }
+    notes = newNotes;
+    drawings = newDrawings;
+
+    // Ensure selectedIndex is within the valid range
+    if (selectedIndex >= notes.length) {
+      selectedIndex = notes.length - 1;
+    }
+    _updateControllerText();
+  });
+}
 
   void _toggleDrawMode() {
     setState(() {
