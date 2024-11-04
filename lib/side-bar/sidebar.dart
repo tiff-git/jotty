@@ -3,7 +3,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'icon_color_selection.dart';
 
 class Sidebar extends StatefulWidget {
-  const Sidebar({super.key});
+  final Function(int) onTabSelected;
+  final Function onTabAdded;
+
+  const Sidebar({required this.onTabSelected, required this.onTabAdded, Key? key}) : super(key: key);
 
   @override
   _SidebarState createState() => _SidebarState();
@@ -18,7 +21,7 @@ class _SidebarState extends State<Sidebar> {
       width: 60,
       color: Color(0xFF303446),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Expanded(
             child: ListView.builder(
@@ -29,7 +32,7 @@ class _SidebarState extends State<Sidebar> {
                   child: IconButton(
                     icon: FaIcon(noteIcons[index]['icon'], color: noteIcons[index]['color']),
                     onPressed: () {
-                      // Handle note selection
+                      widget.onTabSelected(index);
                     },
                   ),
                 );
@@ -53,6 +56,7 @@ class _SidebarState extends State<Sidebar> {
           onSelected: (icon, color) {
             setState(() {
               noteIcons.add({'icon': icon, 'color': color});
+              widget.onTabAdded();
             });
           },
         );

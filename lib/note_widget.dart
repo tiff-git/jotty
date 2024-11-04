@@ -10,7 +10,28 @@ class NoteWidget extends StatefulWidget {
 }
 
 class _NoteWidgetState extends State<NoteWidget> {
-  String noteContent = '';
+  List<String> notes = [''];
+  int selectedIndex = 0;
+  TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.text = notes[selectedIndex];
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateControllerText() {
+    _controller.text = notes[selectedIndex];
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: _controller.text.length),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +39,24 @@ class _NoteWidgetState extends State<NoteWidget> {
       backgroundColor: const Color(0xFF303446),
       body: Row(
         children: [
-          const Sidebar(),
+          Sidebar(
+            onTabSelected: (index) {
+              setState(() {
+                selectedIndex = index;
+                _updateControllerText();
+              });
+            },
+            onTabAdded: () {
+              setState(() {
+                notes.add('');
+                selectedIndex = notes.length - 1;
+                _updateControllerText();
+              });
+            },
+          ),
           CustomPaint(
             size: Size(1, double.infinity),
-            painter: DashedLinePainter(),
+            painter: ThinWhiteLinePainter(),
           ),
           Expanded(
             child: WindowBorder(
@@ -41,9 +76,10 @@ class _NoteWidgetState extends State<NoteWidget> {
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: TextField(
+                        controller: _controller,
                         onChanged: (value) {
                           setState(() {
-                            noteContent = value;
+                            notes[selectedIndex] = value;
                           });
                         },
                         maxLines: null,
@@ -66,17 +102,14 @@ class _NoteWidgetState extends State<NoteWidget> {
   }
 }
 
-class DashedLinePainter extends CustomPainter {
+class ThinWhiteLinePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    double dashHeight = 5, dashSpace = 3, startY = 0;
     final paint = Paint()
       ..color = Colors.white
-      ..strokeWidth = 1;
-    while (startY < size.height) {
-      canvas.drawLine(Offset(0, startY), Offset(0, startY + dashHeight), paint);
-      startY += dashHeight + dashSpace;
-    }
+      ..strokeWidth = 2; // Increase the stroke width to make it bold
+
+    canvas.drawLine(Offset(0, 0), Offset(0, size.height), paint);
   }
 
   @override
